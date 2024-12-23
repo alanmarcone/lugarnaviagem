@@ -131,35 +131,30 @@ const BusSeatSelector = () => {
               </div>
             </div>
 
-            <div className="flex justify-center w-full max-w-3xl overflow-x-auto">
-              <div className={cn(
-                "grid gap-2",
-                isMobile ? "grid-cols-2" : "grid-cols-4"
-              )}>
-                {/* Assentos 1-48 */}
-                {Array.from({ length: 48 }, (_, i) => (
-                  <div key={i + 1}>{renderSeat(i + 1)}</div>
+            <div className="flex justify-center gap-8 md:gap-16 relative">
+              {/* Coluna da esquerda */}
+              <div className="flex flex-col gap-2">
+                {[1, 5, 9, 13, 17, 21, 25, 29, 33, 37, 41, 45, 49].map((seatId) => (
+                  <div key={seatId} className="flex gap-2">
+                    {renderSeat(seatId)}
+                    {seatId !== 49 && renderSeat(seatId + 1)}
+                  </div>
                 ))}
-                
-                {/* Assentos 49-50 juntos */}
-                <div className="col-span-2 flex justify-center gap-2">
-                  {renderSeat(49)}
-                  {renderSeat(50)}
-                </div>
               </div>
-            </div>
 
-            {/* Bottom section */}
-            <div className="grid grid-cols-2 gap-4 mt-8 w-full max-w-md">
-              <div className="text-center">
-                <div className="bg-blue-100 rounded-lg p-2">
-                  Geladeira
-                </div>
+              {/* Corredor */}
+              <div className="writing-mode-vertical text-gray-500 font-bold text-lg">
+                CORREDOR
               </div>
-              <div className="text-center">
-                <div className="bg-orange-100 rounded-lg p-2">
-                  Toalete
-                </div>
+
+              {/* Coluna da direita */}
+              <div className="flex flex-col gap-2">
+                {[3, 6, 10, 14, 18, 22, 26, 30, 34, 38, 42, 46].map((seatId) => (
+                  <div key={seatId} className="flex gap-2">
+                    {renderSeat(seatId)}
+                    {renderSeat(seatId + 1)}
+                  </div>
+                ))}
               </div>
             </div>
 
