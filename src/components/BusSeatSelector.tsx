@@ -90,7 +90,18 @@ const BusSeatSelector = () => {
   return (
     <div className="min-h-screen bg-gray-50 py-12 px-4">
       <div className="max-w-4xl mx-auto">
-        <h1 className="text-3xl font-bold text-center mb-8">Seleção de Assentos</h1>
+        <div className="flex justify-between items-center mb-4">
+          <h1 className="text-3xl font-bold">Seleção de Assentos</h1>
+          <button
+            onClick={() => {
+              localStorage.removeItem("user");
+              window.location.href = "/login";
+            }}
+            className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
+          >
+            Sair
+          </button>
+        </div>
         
         <div className="bg-white rounded-xl shadow-lg p-6">
           <div className="flex justify-between items-center mb-8">
@@ -110,54 +121,54 @@ const BusSeatSelector = () => {
             </div>
           </div>
 
-          <div className="grid grid-cols-4 gap-2 mb-8">
+          <div className="flex flex-col items-center">
             {/* Motorista */}
-            <div className="col-span-4 text-center mb-4">
+            <div className="w-full text-center mb-8">
               <div className="bg-gray-200 rounded-lg p-2 inline-block">
                 Motorista
               </div>
             </div>
 
-            {/* Left side seats */}
-            <div className="grid grid-cols-2 gap-1">
-              {Array.from({ length: 25 }, (_, i) => renderSeat(i * 2 + 1))}
-            </div>
-
-            {/* Corridor */}
-            <div className="flex flex-col items-center justify-center text-gray-500">
-              <span className="writing-mode-vertical transform rotate-180">C O R R E D O R</span>
-            </div>
-
-            {/* Right side seats */}
-            <div className="grid grid-cols-2 gap-1">
-              {Array.from({ length: 25 }, (_, i) => renderSeat(i * 2 + 2))}
-            </div>
-          </div>
-
-          {/* Bottom section */}
-          <div className="grid grid-cols-4 gap-4 mt-4">
-            <div className="col-span-2 text-center">
-              <div className="bg-blue-100 rounded-lg p-2">
-                Geladeira
+            <div className="flex justify-center w-full max-w-3xl">
+              <div className="grid grid-cols-4 gap-4">
+                {/* Assentos 1-48 */}
+                {Array.from({ length: 48 }, (_, i) => (
+                  <div key={i + 1}>{renderSeat(i + 1)}</div>
+                ))}
+                
+                {/* Assentos 49-50 juntos */}
+                <div className="col-span-2 flex justify-center gap-4">
+                  {renderSeat(49)}
+                  {renderSeat(50)}
+                </div>
               </div>
             </div>
-            <div className="col-span-2 text-center">
-              <div className="bg-orange-100 rounded-lg p-2">
-                Toalete
+
+            {/* Bottom section */}
+            <div className="grid grid-cols-2 gap-4 mt-8 w-full max-w-md">
+              <div className="text-center">
+                <div className="bg-blue-100 rounded-lg p-2">
+                  Geladeira
+                </div>
+              </div>
+              <div className="text-center">
+                <div className="bg-orange-100 rounded-lg p-2">
+                  Toalete
+                </div>
               </div>
             </div>
-          </div>
 
-          {selectedSeat && (
-            <div className="mt-8 flex justify-center">
-              <button
-                onClick={confirmSelection}
-                className="bg-green-500 text-white px-6 py-2 rounded-lg hover:bg-green-600 transition-colors"
-              >
-                Confirmar Reserva do Assento {selectedSeat}
-              </button>
-            </div>
-          )}
+            {selectedSeat && (
+              <div className="mt-8">
+                <button
+                  onClick={confirmSelection}
+                  className="bg-green-500 text-white px-6 py-2 rounded-lg hover:bg-green-600 transition-colors"
+                >
+                  Confirmar Reserva do Assento {selectedSeat}
+                </button>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>
