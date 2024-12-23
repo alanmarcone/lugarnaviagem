@@ -137,13 +137,13 @@ const BusSeatSelector = () => {
                 {[1, 5, 9, 13, 17, 21, 25, 29, 33, 37, 41, 45, 49].map((seatId) => (
                   <div key={seatId} className="flex gap-2">
                     {renderSeat(seatId)}
-                    {seatId !== 49 && renderSeat(seatId + 1)}
+                    {seatId === 49 ? renderSeat(50) : renderSeat(seatId + 1)}
                   </div>
                 ))}
               </div>
 
               {/* Corredor */}
-              <div className="writing-mode-vertical text-gray-500 font-bold text-lg">
+              <div className="writing-mode-vertical text-gray-500 font-bold text-lg flex items-center justify-center absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
                 CORREDOR
               </div>
 
