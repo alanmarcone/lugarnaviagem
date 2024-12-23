@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useToast } from "@/components/ui/use-toast";
 import { cn } from "@/lib/utils";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface Seat {
   id: number;
@@ -11,6 +12,7 @@ const BusSeatSelector = () => {
   const { toast } = useToast();
   const [selectedSeat, setSelectedSeat] = useState<number | null>(null);
   const [occupiedSeats, setOccupiedSeats] = useState<number[]>([]);
+  const isMobile = useIsMobile();
 
   // Initialize seats array (50 seats)
   const initialSeats: Seat[] = Array.from({ length: 50 }, (_, index) => ({
@@ -75,7 +77,7 @@ const BusSeatSelector = () => {
         key={seatId}
         onClick={() => handleSeatClick(seatId)}
         className={cn(
-          "w-12 h-12 rounded-lg m-1 transition-all duration-200 flex items-center justify-center text-sm font-medium",
+          "w-8 h-8 md:w-12 md:h-12 rounded-lg m-1 transition-all duration-200 flex items-center justify-center text-xs md:text-sm font-medium",
           isOccupied ? "bg-red-500 text-white cursor-not-allowed" :
           isSelected ? "bg-blue-500 text-white" :
           "bg-gray-100 hover:bg-gray-200"
@@ -88,10 +90,10 @@ const BusSeatSelector = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 py-12 px-4">
+    <div className="min-h-screen bg-gray-50 py-6 md:py-12 px-2 md:px-4">
       <div className="max-w-4xl mx-auto">
-        <div className="flex justify-between items-center mb-4">
-          <h1 className="text-3xl font-bold">Seleção de Assentos</h1>
+        <div className="flex justify-between items-center mb-4 flex-col md:flex-row gap-4 md:gap-0">
+          <h1 className="text-2xl md:text-3xl font-bold">Seleção de Assentos</h1>
           <button
             onClick={() => {
               localStorage.removeItem("user");
@@ -103,9 +105,9 @@ const BusSeatSelector = () => {
           </button>
         </div>
         
-        <div className="bg-white rounded-xl shadow-lg p-6">
-          <div className="flex justify-between items-center mb-8">
-            <div className="flex gap-4">
+        <div className="bg-white rounded-xl shadow-lg p-4 md:p-6">
+          <div className="flex justify-center md:justify-between items-center mb-8 flex-wrap gap-4">
+            <div className="flex gap-4 flex-wrap justify-center">
               <div className="flex items-center gap-2">
                 <div className="w-4 h-4 bg-gray-100 rounded"></div>
                 <span>Disponível</span>
@@ -129,15 +131,18 @@ const BusSeatSelector = () => {
               </div>
             </div>
 
-            <div className="flex justify-center w-full max-w-3xl">
-              <div className="grid grid-cols-4 gap-4">
+            <div className="flex justify-center w-full max-w-3xl overflow-x-auto">
+              <div className={cn(
+                "grid gap-2",
+                isMobile ? "grid-cols-2" : "grid-cols-4"
+              )}>
                 {/* Assentos 1-48 */}
                 {Array.from({ length: 48 }, (_, i) => (
                   <div key={i + 1}>{renderSeat(i + 1)}</div>
                 ))}
                 
                 {/* Assentos 49-50 juntos */}
-                <div className="col-span-2 flex justify-center gap-4">
+                <div className="col-span-2 flex justify-center gap-2">
                   {renderSeat(49)}
                   {renderSeat(50)}
                 </div>
