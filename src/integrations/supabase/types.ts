@@ -9,6 +9,33 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      assentos: {
+        Row: {
+          created_at: string | null
+          id: number
+          numero: number
+          ocupado: boolean | null
+          preco: number | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: number
+          numero: number
+          ocupado?: boolean | null
+          preco?: number | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: number
+          numero?: number
+          ocupado?: boolean | null
+          preco?: number | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       Clientes: {
         Row: {
           created_at: string
@@ -29,6 +56,27 @@ export type Database = {
           id?: number
           nome?: string | null
           status?: boolean | null
+          whatsapp?: string | null
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          created_at: string | null
+          id: string
+          nome: string | null
+          whatsapp: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id: string
+          nome?: string | null
+          whatsapp?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          nome?: string | null
           whatsapp?: string | null
         }
         Relationships: []
