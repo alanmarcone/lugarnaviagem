@@ -1,74 +1,31 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useToast } from "@/components/ui/use-toast";
 import { cn } from "@/lib/utils";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { supabase } from "@/integrations/supabase/client";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
 interface Seat {
   id: number;
-  numero: number;
-  ocupado: boolean;
-  user_id: string | null;
+  isOccupied: boolean;
 }
 
 const BusSeatSelector = () => {
   const { toast } = useToast();
   const [selectedSeat, setSelectedSeat] = useState<number | null>(null);
+  const [occupiedSeats, setOccupiedSeats] = useState<number[]>([]);
   const isMobile = useIsMobile();
-  const queryClient = useQueryClient();
 
-  // Fetch seats from Supabase
-  const { data: seats = [], isLoading } = useQuery({
-    queryKey: ['seats'],
-    queryFn: async () => {
-      console.log("Fetching seats from Supabase");
-      const { data, error } = await supabase
-        .from('assentos')
-        .select('*')
-        .order('numero');
-      
-      if (error) {
-        console.error("Error fetching seats:", error);
-        throw error;
-      }
-      console.log("Seats fetched:", data);
-      return data as Seat[];
-    }
-  });
+  // Initialize seats array (50 seats)
+  const initialSeats: Seat[] = Array.from({ length: 50 }, (_, index) => ({
+    id: index + 1,
+    isOccupied: false
+  }));
 
-  // Mutation for updating seat status
-  const updateSeatMutation = useMutation({
-    mutationFn: async (seatId: number) => {
-      console.log("Updating seat:", seatId);
-      const { data: userData, error: userError } = await supabase.auth.getUser();
-      if (userError) throw userError;
+  const [seats] = useState<Seat[]>(initialSeats);
 
-      const { data, error } = await supabase
-        .from('assentos')
-        .update({ 
-          ocupado: true,
-          user_id: userData.user.id 
-        })
-        .eq('id', seatId)
-        .select()
-        .single();
-
-      if (error) {
-        console.error("Error updating seat:", error);
-        throw error;
-      }
-      return data;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['seats'] });
-    }
-  });
-
-  const handleSeatClick = (seat: Seat) => {
-    console.log(`Seat ${seat.numero} clicked`);
+  const handleSeatClick = (seatId: number) => {
+    console.log(`Seat ${seatId} clicked`);
     
-    if (seat.ocupado) {
+    if (occupiedSeats.includes(seatId)) {
       toast({
         title: "Assento indisponível",
         description: "Este assento já está ocupado.",
@@ -77,11 +34,11 @@ const BusSeatSelector = () => {
       return;
     }
 
-    if (selectedSeat === seat.id) {
+    if (selectedSeat === seatId) {
       setSelectedSeat(null);
       toast({
         title: "Seleção removida",
-        description: `Assento ${seat.numero} foi desmarcado.`
+        description: `Assento ${seatId} foi desmarcado.`
       });
     } else {
       if (selectedSeat) {
@@ -92,62 +49,45 @@ const BusSeatSelector = () => {
         });
         return;
       }
-      setSelectedSeat(seat.id);
+      setSelectedSeat(seatId);
       toast({
         title: "Assento selecionado",
-        description: `Você selecionou o assento ${seat.numero}.`
+        description: `Você selecionou o assento ${seatId}.`
       });
     }
   };
 
-  const confirmSelection = async () => {
+  const confirmSelection = () => {
     if (selectedSeat) {
-      try {
-        await updateSeatMutation.mutateAsync(selectedSeat);
-        setSelectedSeat(null);
-        toast({
-          title: "Reserva confirmada",
-          description: `Assento foi reservado com sucesso!`
-        });
-      } catch (error) {
-        console.error("Error confirming selection:", error);
-        toast({
-          title: "Erro na reserva",
-          description: "Não foi possível reservar o assento. Tente novamente.",
-          variant: "destructive"
-        });
-      }
+      setOccupiedSeats([...occupiedSeats, selectedSeat]);
+      setSelectedSeat(null);
+      toast({
+        title: "Reserva confirmada",
+        description: `Assento ${selectedSeat} foi reservado com sucesso!`
+      });
     }
   };
 
-  const handleLogout = async () => {
-    await supabase.auth.signOut();
-    window.location.href = "/login";
-  };
-
-  const renderSeat = (seat: Seat) => {
-    const isSelected = selectedSeat === seat.id;
+  const renderSeat = (seatId: number) => {
+    const isSelected = selectedSeat === seatId;
+    const isOccupied = occupiedSeats.includes(seatId);
 
     return (
       <button
-        key={seat.id}
-        onClick={() => handleSeatClick(seat)}
+        key={seatId}
+        onClick={() => handleSeatClick(seatId)}
         className={cn(
           "w-8 h-8 md:w-12 md:h-12 rounded-lg m-1 transition-all duration-200 flex items-center justify-center text-xs md:text-sm font-medium",
-          seat.ocupado ? "bg-red-500 text-white cursor-not-allowed" :
+          isOccupied ? "bg-red-500 text-white cursor-not-allowed" :
           isSelected ? "bg-blue-500 text-white" :
           "bg-gray-100 hover:bg-gray-200"
         )}
-        disabled={seat.ocupado}
+        disabled={isOccupied}
       >
-        {seat.numero}
+        {seatId}
       </button>
     );
   };
-
-  if (isLoading) {
-    return <div className="flex justify-center items-center min-h-screen">Carregando...</div>;
-  }
 
   return (
     <div className="min-h-screen bg-gray-50 py-6 md:py-12 px-2 md:px-4">
@@ -155,7 +95,10 @@ const BusSeatSelector = () => {
         <div className="flex justify-between items-center mb-4 flex-col md:flex-row gap-4 md:gap-0">
           <h1 className="text-2xl md:text-3xl font-bold">Seleção de Assentos</h1>
           <button
-            onClick={handleLogout}
+            onClick={() => {
+              localStorage.removeItem("user");
+              window.location.href = "/login";
+            }}
             className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
           >
             Sair
@@ -191,25 +134,25 @@ const BusSeatSelector = () => {
             <div className="flex justify-center gap-8 md:gap-16 relative">
               {/* Coluna da esquerda */}
               <div className="flex flex-col gap-2">
-                {seats.filter(seat => seat.numero <= 25).map((seat, index) => (
-                  <div key={seat.id} className="flex gap-2">
-                    {renderSeat(seat)}
-                    {index < 24 && renderSeat(seats[index + 25])}
+                {[1, 5, 9, 13, 17, 21, 25, 29, 33, 37, 41, 45, 49].map((seatId) => (
+                  <div key={seatId} className="flex gap-2">
+                    {renderSeat(seatId)}
+                    {seatId === 49 ? renderSeat(50) : renderSeat(seatId + 1)}
                   </div>
                 ))}
               </div>
 
               {/* Corredor */}
-              <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-gray-500 font-bold text-lg">
+              <div className="writing-mode-vertical text-gray-500 font-bold text-lg flex items-center justify-center absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
                 CORREDOR
               </div>
 
               {/* Coluna da direita */}
               <div className="flex flex-col gap-2">
-                {seats.filter(seat => seat.numero >= 26 && seat.numero <= 49).map((seat, index) => (
-                  <div key={seat.id} className="flex gap-2">
-                    {renderSeat(seat)}
-                    {index === 11 && renderSeat(seats[49])} {/* Seat 50 */}
+                {[3, 6, 10, 14, 18, 22, 26, 30, 34, 38, 42, 46].map((seatId) => (
+                  <div key={seatId} className="flex gap-2">
+                    {renderSeat(seatId)}
+                    {renderSeat(seatId + 1)}
                   </div>
                 ))}
               </div>
@@ -221,7 +164,7 @@ const BusSeatSelector = () => {
                   onClick={confirmSelection}
                   className="bg-green-500 text-white px-6 py-2 rounded-lg hover:bg-green-600 transition-colors"
                 >
-                  Confirmar Reserva
+                  Confirmar Reserva do Assento {selectedSeat}
                 </button>
               </div>
             )}
